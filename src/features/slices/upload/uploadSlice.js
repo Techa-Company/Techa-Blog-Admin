@@ -4,7 +4,7 @@ import { uploadImage } from '../../actions/upload/uploadActions';
 
 const initialState = {
     loading: false,
-    location: "",
+    id: "",
     error: null
 }
 
@@ -19,7 +19,7 @@ const uploadSlice = createSlice({
             })
             .addCase(uploadImage.fulfilled, (state, { payload }) => {
                 state.loading = false;
-                state.location = payload
+                state.id = payload
             })
             .addCase(uploadImage.rejected, (state, { payload }) => {
                 state.loading = false;

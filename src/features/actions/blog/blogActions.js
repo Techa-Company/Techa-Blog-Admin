@@ -1,28 +1,51 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import { SP_fetch } from "../../../services/api";
 
-const getAllBlogs = createAsyncThunk("blogs/getAllBlogs", async () => {
-    const query = "Blog/GetBlogsForAdmin?PageIndex=1&PageSize=10"
-    const { data } = await axios.get(query);
-    console.log(data?.blogs?.items)
-    return data?.blogs?.items;
-});
+export const getAllPosts = createAsyncThunk(
+    'docs/getAllPosts',
+    async (parameters, thunkAPI) => {
+        try {
+            const res = await SP_fetch('Report_Posts', parameters)
+            console.log(res.Data.Dataset)
+            return res.Data.Dataset
+        } catch (err) {
+            return thunkAPI.rejectWithValue(err.message)
+        }
+    }
+)
 
-const getBlogForEdit = createAsyncThunk("blogs/getBlogForEdit", async id => {
-    const query = `Blog/GetBlogForEdit?Key=${id}`
-    const { data } = await axios.get(query);
-    console.log(data.blog)
-    return data?.blog
-});
+export const getPostById = createAsyncThunk(
+    "docs/getPostById",
+    async (parameters, thunkAPI) => {
+        try {
+            const res = await SP_fetch("Form_Posts", parameters);
+            return res.Data.Dataset?.[0] || null;
+        } catch (error) {
+            return thunkAPI.rejectWithValue(error.message);
+        }
+    }
+);
 
-const createBlog = createAsyncThunk("blogs/createBlog", async formData => {
-    const query = "Blog/PostBlog"
-    await axios.post(query, formData);
-});
+export const createAndUpdatePost = createAsyncThunk(
+    'docs/createAndUpdatePost',
+    async (parameters, thunkAPI) => {
+        try {
+            const res = await SP_fetch('Save_Posts', parameters)
+            console.log(res)
+        } catch (error) {
+            return thunkAPI.rejectWithValue(error.message)
+        }
+    }
+)
 
-const updateBlog = createAsyncThunk("blogs/updateBlog", async formData => {
-    const query = "Blog/EditBlog"
-    await axios.put(query, formData);
-});
-
-export { getAllBlogs, createBlog, getBlogForEdit, updateBlog };
+export const deletePost = createAsyncThunk(
+    'docs/deletePost',
+    async (parameters, thunkAPI) => {
+        try {
+            const res = await SP_fetch('Delete_Posts', parameters)
+            console.log(res)
+        } catch (error) {
+            return thunkAPI.rejectWithValue(error.message)
+        }
+    }
+)

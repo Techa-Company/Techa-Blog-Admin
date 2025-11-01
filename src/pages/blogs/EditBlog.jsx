@@ -1,204 +1,187 @@
-// import { Link } from 'react-router-dom';
 import MainLayout from '../layout/MainLayout';
-import { Button, Input, InputNumber, Form, Select, Upload } from 'antd';
-import { InboxOutlined } from '@ant-design/icons';
+import { Button, Input, InputNumber, Form, Select } from 'antd';
 import BlogEditor from '../../components/BlogEditor';
 import { useEffect, useRef } from 'react';
 import Uploader from '../../components/Uploader';
 import { useDispatch, useSelector } from 'react-redux';
-import { createBlog, getBlogForEdit, updateBlog } from '../../features/actions/blog/blogActions';
+import { createAndUpdatePost, getPostById } from '../../features/actions/blog/blogActions';
 import { useNavigate, useParams } from 'react-router-dom';
-// import { getCategoriesForSelect } from '../../features/actions/category/categoryActions';
-
-
+import { getAllCategories } from '../../features/actions/category/categoryActions';
 
 const EditBlog = () => {
-
     const { id } = useParams();
     const navigate = useNavigate();
-    const editorRef = useRef(null)
+    const editorRef = useRef(null);
     const dispatch = useDispatch();
-    const imageLocation = useSelector(state => state.upload.location);
-    const categories = useSelector(state => state.categories.select);
-    const blog = useSelector(state => state.blogs.blogs.find(blog => blog.key == id))
+    const { categories } = useSelector(state => state.categories);
+    const { id: uploadId } = useSelector(state => state.upload);
+    const { selectedPost, loading } = useSelector(state => state.posts);
     const [form] = Form.useForm();
-    console.log(blog)
+    console.log(selectedPost)
+    useEffect(() => {
+        dispatch(getAllCategories());
+    }, [dispatch]);
+    useEffect(() => {
+        if (id) {
+            dispatch(getPostById({ "@Id": Number(id) }));
+        }
+    }, [id, dispatch]);
 
     useEffect(() => {
-        // editorRef.current.setContent(blog.content)
-        form.setFieldsValue(blog)
-        console.log("Second")
-    }, [blog, form, id])
-
-    const onFinish = async values => {
-        try {
-            const categoriesKeys = values.categoriesKeys;
-            delete values.categoriesKeys;
-            values.key = id.toString();
-            values.mainImageName = blog.mainImageName;
-            values.content = editorRef.current.getContent();
-            console.log('Success:', values);
-            const data = { blog: values };
-            data.mainAuthorId = 1;
-            data.categoriesKeys = categoriesKeys;
-            console.log(data);
-            await dispatch(updateBlog(data));
-            navigate("/blogs")
-        } catch (error) {
-            console.log(error.message)
+        if (selectedPost) {
+            form.setFieldsValue({
+                CategoryId: selectedPost.CategoryId,
+                Title: selectedPost.Title,
+                Slug: selectedPost.Slug,
+                Summary: selectedPost.Summary,
+                Status: selectedPost.Status,
+                MetaTitle: selectedPost.MetaTitle,
+                KeyWords: selectedPost.KeyWords ? selectedPost.KeyWords.split(",") : [],
+                MetaDescription: selectedPost.MetaDescription,
+                // ThumbnailId: selectedPost.ThumbnailUrl || "mox",
+                PublishedAt: selectedPost.PublishedAt
+                    ? selectedPost.PublishedAt.replace("T", " ").slice(0, 16)
+                    : null,
+                TimeToRead: selectedPost.TimeToRead
+            });
+            if (editorRef.current) {
+                editorRef.current.setContent(selectedPost.Body || "");
+            }
         }
+    }, [selectedPost, form]);
 
-    };
-    const onFinishFailed = (errorInfo) => {
-        console.log('Failed:', errorInfo);
-    };
+    const onFinish = async (values) => {
+        try {
+            const data = {
+                Id: selectedPost.Id,
+                AuthorId: selectedPost.AuthorId || 9,
+                CategoryId: values.CategoryId,
+                Title: values.Title?.trim(),
+                Slug: values.Slug?.trim(),
+                Summary: values.Summary?.trim(),
+                Body: editorRef.current.getContent(),
+                ThumbnailId: uploadId || selectedPost.ThumbnailId,
+                Status: values.Status,
+                MetaTitle: values.MetaTitle,
+                KeyWords: values.KeyWords.join(","),
+                MetaDescription: values.MetaDescription,
+                PublishedAt: values.PublishedAt
+                    ? new Date(values.PublishedAt).toISOString().slice(0, 19).replace("T", " ")
+                    : null,
+                TimeToRead: values.TimeToRead || 0
+            };
 
-    // useEffect(() => {
-    //     dispatch(getCategoriesForSelect())
-    // }, [dispatch])
+            await dispatch(createAndUpdatePost(data)).unwrap();
+            navigate("/blogs");
+        } catch (error) {
+            console.error("Error updating post:", error);
+        }
+    };
 
     return (
         <MainLayout>
-            <div className='bg-white p-3 rounded-2xl shadow-lg'>
-                <h1 className='font-medium text-xl'>ویرایش مقاله</h1>
+            <div className="bg-white p-3 rounded-2xl shadow-lg">
+                <h1 className="font-medium text-xl">ویرایش پست</h1>
                 <Form
-                    onFinish={onFinish}
-                    onFinishFailed={onFinishFailed}
-                    initialValues={blog}
-                    className='mt-5'
+                    form={form}
                     layout="vertical"
+                    onFinish={onFinish}
                     autoComplete="off"
-
+                    className="mt-5"
                 >
-                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5'>
+                    {/* بخش بالایی */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5">
                         <Form.Item
-                            name="preTitle"
-                            label="پیش عنوان"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: "وارد کردن پیش عنوان ضروری است",
-                                },
-                            ]}
-                        >
-                            <Input placeholder="پیش عنوان مقاله" />
-                        </Form.Item>
-                        <Form.Item
-                            name="title"
-                            label="عنوان"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: "وارد کردن عنوان ضروری است",
-                                },
-                            ]}
-                        >
-                            <Input placeholder="عنوان مقاله" />
-                        </Form.Item>
-                        <Form.Item
-                            name="subTitle"
-                            label="عنوان فرعی"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: "وارد کردن عنوان فرعی ضروری است",
-                                },
-                            ]}
-                        >
-                            <Input placeholder="عنوان فرعی مقاله" />
-                        </Form.Item>
-                    </div>
-                    <div className='grid grid-cols-3 gap-5'>
-                        <Form.Item
-                            name="categoriesKeys"
+                            name="CategoryId"
                             label="دسته بندی"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: "انتخاب کردن دسته بندی ضروری است",
-                                },
-                            ]}
+                            rules={[{ required: true, message: "انتخاب دسته بندی ضروری است" }]}
                         >
-                            <Select
-                                mode='multiple'>
-                                {
-                                    categories.map(category => {
-                                        return <Select.Option key={categories.key} value={category.key}>{category.title}</Select.Option>
+                            <Select placeholder="انتخاب دسته بندی">
+                                {categories.map(cat => (
+                                    <Select.Option key={cat.Id} value={cat.Id}>
+                                        {cat.Name}
+                                    </Select.Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
 
-                                    })
-                                }
-                            </Select>
-                        </Form.Item>
                         <Form.Item
-                            name="timeToRead"
-                            label="زمان مطالعه"
-                            rules={[
-                                {
-                                    required: true,
-                                    type: "number",
-                                    message: "وارد کردن زمان مطالعه ضروری است",
-                                },
-                            ]}
+                            name="Title"
+                            label="عنوان"
+                            rules={[{ required: true, message: "عنوان الزامی است" }]}
                         >
-                            <InputNumber
-                                className='w-full'
-                                addonAfter="دقیقه"
-                                controls
-                            />
+                            <Input placeholder="عنوان پست" />
                         </Form.Item>
+
                         <Form.Item
-                            name="ageRanges"
-                            label="گروه سنی"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: "وارد کردن گروه سنی ضروری است",
-                                },
-                            ]}
+                            name="Slug"
+                            label="نامک"
+                            rules={[{ required: true, message: "نامک الزامی است" }]}
                         >
-                            <Select
-                                mode='multiple'>
-                                <Select.Option value="NewBorn">کوچولو</Select.Option>
-                                <Select.Option value="Bit">بزرگ</Select.Option>
-                            </Select>
+                            <Input dir="ltr" placeholder="نامک پست" />
                         </Form.Item>
                     </div>
-                    <div className='grid grid-cols-1'>
-                        {/* <Form.Item
-                            name="mainImageName"
-                            label="عکس مقاله"
-                        // rules={[
-                        //     {
-                        //         required: true,
-                        //         message: "آپلود تصویر ضروری است",
-                        //     },
-                        // ]}
+
+                    {/* اطلاعات زمان، وضعیت، زمان مطالعه */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5">
+                        <Form.Item
+                            name="Status"
+                            label="وضعیت"
+                            rules={[{ required: true, message: "انتخاب وضعیت الزامی است" }]}
                         >
+                            <Select placeholder="انتخاب وضعیت">
+                                <Select.Option value="Draft">پیش‌نویس</Select.Option>
+                                <Select.Option value="Published">منتشر شده</Select.Option>
+                            </Select>
+                        </Form.Item>
+                        <Form.Item name="PublishedAt" label="تاریخ انتشار">
+                            <Input type="datetime-local" />
+                        </Form.Item>
+                        <Form.Item name="TimeToRead" label="زمان مطالعه (دقیقه)">
+                            <InputNumber min={0} className="w-full" />
+                        </Form.Item>
+                    </div>
+
+                    {/* سئو */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5">
+                        <Form.Item name="MetaTitle" label="عنوان سئو">
+                            <Input placeholder="عنوان سئو" />
+                        </Form.Item>
+
+                        <Form.Item name="KeyWords" label="کلمات کلیدی">
+                            <Select mode="tags" placeholder="کلمات کلیدی" />
+                        </Form.Item>
+
+                        <Form.Item name="MetaDescription" label="Meta Description">
+                            <Input placeholder="توضیح متا" />
+                        </Form.Item>
+                    </div>
+
+                    {/* آپلود و خلاصه */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5">
+                        <Form.Item name="ThumbnailId" label="تصویر اصلی پست">
                             <Uploader />
-                        </Form.Item> */}
-                        <Form.Item name="summary" label="خلاصه"
-                            rules={[
-                                {
-                                    required: true,
-                                    message: "وارد کردن خلاصه مقاله ضروری است",
-                                },
-                            ]}
-                        >
-                            <Input.TextArea rows={10} placeholder='خلاصه مقاله' />
+                        </Form.Item>
+                        <Form.Item name="Summary" label="خلاصه">
+                            <Input.TextArea rows={7} placeholder="خلاصه پست" />
                         </Form.Item>
                     </div>
-                    <div>
-                        <Form.Item name="content" label="محتوای مقاله"
-                        >
-                            <BlogEditor editorRef={editorRef} />
-                        </Form.Item>
-                    </div>
-                    <Form.Item >
+
+                    {/* محتوای اصلی */}
+                    <Form.Item name="Body" label="محتوا">
+                        <BlogEditor editorRef={editorRef} />
+                    </Form.Item>
+
+                    {/* دکمه‌ها */}
+                    <Form.Item className="mt-5">
                         <Button className="ml-3" type="primary" htmlType="submit">
                             ویرایش
                         </Button>
-                        <Button type="default" htmlType="button"
+                        <Button
+                            type="default"
+                            htmlType="button"
                             onClick={() => navigate("/blogs")}
+                            className="ml-3"
                         >
                             بازگشت
                         </Button>
@@ -210,19 +193,3 @@ const EditBlog = () => {
 };
 
 export default EditBlog;
-// const schema = yup.object().shape({
-//     preTitle: yup.string().required("وارد کردن پیش عنوان ضروری است"),
-//     title: yup.string().required("وارد کردن عنوان ضروری است"),
-//     subTitle: yup.string().required("وارد کردن عنوان فرعی ضروری است"),
-//     content: yup.string().required("وارد کردن محتوا ضروری است"),
-//     timeToRead: yup.number().required("وارد کردن عنوان ضروری است"),
-//     mainImageName: yup.string().required("آپلود تصویر ضروری است"),
-//     summary: yup.number().required("وارد کردن خلاصه ضروری است"),
-//     ageRanges: yup.string().required("وارد کردن گروه سنی ضروری است"),
-// }).required();
-
-
-
-// const { register, handleSubmit, formState: { errors } } = useForm({
-//     resolver: yupResolver(schema),
-// });

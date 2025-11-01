@@ -3,9 +3,20 @@ import MainLayout from './layout/MainLayout';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllBlogs } from '../features/actions/blog/blogActions';
+import { getAllPosts } from '../features/actions/blog/blogActions';
 import { getAllCategories } from '../features/actions/category/categoryActions';
 
+
+const translateStatus = status => {
+    switch (status) {
+        case "Published":
+            return "منتشر شده";
+        case "Draft":
+            return "پیش‌نویس";
+        default:
+            return status;
+    }
+};
 const blogCol = [
     {
         title: "ردیف",
@@ -15,25 +26,25 @@ const blogCol = [
     },
     {
         title: "عنوان",
-        dataIndex: "title",
-        key: "title",
+        dataIndex: "Title",
+        key: "Title",
         render: (_, record) => (
             <Link to={`${record.key}`}>
-                {record.title}
+                {record.Title}
             </Link>
         ),
     },
     {
         title: "زمان مطالعه",
-        dataIndex: "timeToRead",
-        key: "timeToRead",
+        dataIndex: "TimeToRead",
+        key: "TimeToRead",
         render: item => <span>{`${item} دقیقه`}</span>,
     },
     {
         title: "وضعیت",
-        dataIndex: "settings",
-        key: "settings",
-        render: item => <span>{item.state}</span>,
+        dataIndex: "Status",
+        key: "Status",
+        render: item => <span>{translateStatus(item)}</span>,
     },
 ];
 
@@ -50,7 +61,7 @@ const categoryCol = [
         render: (_, record) => (
             <Link
                 to={{
-                    pathname: "/blogs/categories",
+                    pathname: "/posts/categories",
                     search: new URLSearchParams({ parent: record.Id }).toString(),
                 }}
             >
@@ -78,16 +89,17 @@ const Dashboard = () => {
     // const pagination = usePagination();
 
     const dispatch = useDispatch();
-    const { loading: blogLoading, blogs } = useSelector(state => state.blogs)
+    const { loading: blogLoading, posts } = useSelector(state => state.posts)
     const { loading: categoryLoading, categories } = useSelector(state => state.categories)
 
     useEffect(() => {
-        dispatch(getAllBlogs());
+        dispatch(getAllPosts());
         dispatch(getAllCategories());
     }, [dispatch])
 
-    console.log(blogs, blogLoading);
+    console.log(posts, blogLoading);
     console.log(categories, categoryLoading)
+
     return (
         <MainLayout>
             <div className='overflow-x-hidden'>
@@ -97,7 +109,7 @@ const Dashboard = () => {
                             <h1 className='font-medium text-xl text-primary'>مقالات</h1>
                             <div className='flex justify-between items-center mt-5'>
                                 <p className='text-slate-400'>تعداد مقالات</p>
-                                <p className='bg-primary text-white py-1 px-3 rounded-full'>{blogs.length}</p>
+                                <p className='bg-primary text-white py-1 px-3 rounded-full'>{posts.length}</p>
                             </div>
                         </Card>
                     </Col>
@@ -153,7 +165,7 @@ const Dashboard = () => {
                         <Spin spinning={blogLoading} size="large" style={{ height: 600 }}>
                             <Table
                                 bordered
-                                dataSource={blogs.slice(-5).reverse()}
+                                dataSource={posts.slice(-5).reverse()}
                                 columns={blogCol}
                             // pagination={{
                             //     ...pagination,

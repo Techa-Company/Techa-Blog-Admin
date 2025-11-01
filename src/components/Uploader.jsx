@@ -1,39 +1,36 @@
-import { InboxOutlined, PlusOutlined } from "@ant-design/icons";
-import { Image, Upload } from "antd";
+import { InboxOutlined } from "@ant-design/icons";
+import { Image, Upload, message } from "antd";
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { uploadImage } from "../features/actions/upload/uploadActions";
 
-/*const beforeUpload = (file) => {
-  const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
-  if (!isJpgOrPng) {
-    message.error("You can only upload JPG/PNG file!");
-  }
-  const isLt2M = file.size / 1024 / 1024 < 2;
-  if (!isLt2M) {
-    message.error("Image must be smaller than 2MB!");
-  }
-  return isJpgOrPng && isLt2M;
-};
-*/
-
 const Uploader = ({ value, onChange }) => {
-
   const dispatch = useDispatch();
-  const imageLocation = useSelector(state => state.upload.location);
   const [loading, setLoading] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(false);
 
-
   const handleChange = (info) => {
-    console.log(info)
     switch (info.file.status) {
       case "uploading":
         setLoading(true);
         break;
       case "done":
         setLoading(false);
-        onChange(info.file.response.location);
+        if (info.file.response) {
+          const fileId = info.file.response.Id;
+          console.log(fileId)
+          // اگر فقط Id لازم داری:
+          onChange(fileId);
+
+          // اگر URL دانلود داری (مثلاً api/FileUpload/{id}):
+          // onChange(`https://api.techa.me/api/FileUpload/${fileId}`);
+
+          message.success("آپلود با موفقیت انجام شد");
+        }
+        break;
+      case "error":
+        setLoading(false);
+        message.error("خطا در آپلود فایل");
         break;
       case "removed":
         setLoading(false);
@@ -44,41 +41,30 @@ const Uploader = ({ value, onChange }) => {
     }
   };
 
-  const handleUpload = async (file, onSuccess) => {
+  const handleUpload = async (file, onSuccess, onError) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
     try {
-      await dispatch(uploadImage(formData));
-      onSuccess();
+      const result = await dispatch(uploadImage(formData)).unwrap();
+      // فرض می‌کنیم اکشن uploadImage همون پاسخ API رو برمی‌گردونه
+      onSuccess(result);
     } catch (error) {
-      console.log(error)
+      console.error(error);
+      onError(error);
     }
-  }
+  };
+
   return (
     <>
       <Upload.Dragger
         name="file"
         listType="picture"
         showUploadList={true}
-        // method="POST"
-        //defaultFileList={[new File()]}
+        method="POST"
         style={{ display: value || loading ? "none" : "block" }}
         maxCount={1}
-        /*defaultFileList={
-          value
-            ? [
-                {
-                  name: value?.split && value.split("/").reverse()[0],
-                  status: "done",
-                  url: value,
-                },
-              ]
-            : []
-        }*/
-        customRequest={({ file, onSuccess }) => handleUpload(file, onSuccess)}
-        // action="https://blog-api.barazman.dev/File/UploadFile"
+        customRequest={({ file, onSuccess, onError }) => handleUpload(file, onSuccess, onError)}
         onChange={handleChange}
-        //beforeUpload={beforeUpload}
         onPreview={() => setPreviewVisible(true)}
       >
 
@@ -87,16 +73,17 @@ const Uploader = ({ value, onChange }) => {
             <p className="ant-upload-drag-icon py-1.5">
               <InboxOutlined />
             </p>
-            <p className="">کلیک کنید یا فایل خود را بکشید و در اینجا رها کنید</p>
+            <p>کلیک کنید یا فایل خود را بکشید و در اینجا رها کنید</p>
             <p className="ant-upload-hint">پشتیبانی از آپلود یک عکس.</p>
           </div>
         )}
       </Upload.Dragger>
+
       <Image
         style={{ display: "none" }}
         preview={{
           visible: previewVisible,
-          src: value,
+          src: value ? value : "",
           onVisibleChange: setPreviewVisible,
         }}
       />
