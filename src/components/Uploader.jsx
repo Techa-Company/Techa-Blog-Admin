@@ -2,7 +2,7 @@ import { InboxOutlined, PlusOutlined } from "@ant-design/icons";
 import { Image, Upload } from "antd";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { uploadImage } from "../actions/upload/uploadActions";
+import { uploadImage } from "../features/actions/upload/uploadActions";
 
 /*const beforeUpload = (file) => {
   const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";

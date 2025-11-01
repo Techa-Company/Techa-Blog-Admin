@@ -1,10 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit"
-import { themeSlice } from "../slices/theme/themeSlice"
-import blogReducer from "../slices/blog/blogSlice"
-import uploadReducer from "../slices/upload/uploadSlice"
-import categoryReducer from "../slices/category/categorySlice";
-import seoReducer from "../slices/blog/seoSlice"
-import sliderReducer from "../slices/slider/sliderSlice"
+import { themeSlice } from "../features/slices/theme/themeSlice"
+import blogReducer from "../features/slices/blog/blogSlice"
+import uploadReducer from "../features/slices/upload/uploadSlice"
+import categoryReducer from "../features/slices/category/categorySlice";
+import seoReducer from "../features/slices/blog/seoSlice"
+import sliderReducer from "../features/slices/slider/sliderSlice"
 
 export const store = configureStore({
     reducer: {

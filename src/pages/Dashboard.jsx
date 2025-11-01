@@ -3,8 +3,8 @@ import MainLayout from './layout/MainLayout';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllBlogs } from '../actions/blog/blogActions';
-import { getAllCategories } from '../actions/category/categoryActions';
+import { getAllBlogs } from '../features/actions/blog/blogActions';
+import { getAllCategories } from '../features/actions/category/categoryActions';
 
 const blogCol = [
     {
@@ -40,32 +40,36 @@ const blogCol = [
 const categoryCol = [
     {
         title: "ردیف",
-        dataIndex: "key",
-        key: "key",
+        key: "index",
         render: (_, record, index) => <span>{index + 1}</span>,
     },
     {
         title: "عنوان",
-        dataIndex: "title",
-        key: "title",
+        dataIndex: "Name",
+        key: "Name",
         render: (_, record) => (
             <Link
                 to={{
                     pathname: "/blogs/categories",
-                    search: new URLSearchParams({ parent: record.key }).toString(),
+                    search: new URLSearchParams({ parent: record.Id }).toString(),
                 }}
             >
-                {record.title}
+                {record.Name}
             </Link>
         ),
     },
     {
-        title: "توضیحات",
-        dataIndex: "descriptions",
-        key: "descriptions",
-        render: (_, record) => <span>{record.descriptions}</span>,
+        title: "نامک",
+        dataIndex: "Slug",
+        key: "Slug",
+        render: (_, record) => <span >{record.Slug || "-"}</span>,
     },
-
+    {
+        title: "توضیحات",
+        dataIndex: "Description",
+        key: "Description",
+        render: (_, record) => <span>{record.Description || "-"}</span>,
+    },
 ];
 
 

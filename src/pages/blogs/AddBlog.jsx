@@ -6,9 +6,9 @@ import BlogEditor from '../../components/BlogEditor';
 import { useEffect, useRef } from 'react';
 import Uploader from '../../components/Uploader';
 import { useDispatch, useSelector } from 'react-redux';
-import { createBlog } from '../../actions/blog/blogActions';
+import { createBlog } from '../../features/actions/blog/blogActions';
 import { useNavigate } from 'react-router-dom';
-import { getCategoriesForSelect } from '../../actions/category/categoryActions';
+// import { getCategoriesForSelect } from '../../features/actions/category/categoryActions';
 
 
 
@@ -43,9 +43,9 @@ const AddBlog = () => {
         console.log('Failed:', errorInfo);
     };
 
-    useEffect(() => {
-        dispatch(getCategoriesForSelect())
-    }, [dispatch])
+    // useEffect(() => {
+    //     dispatch(getCategoriesForSelect())
+    // }, [dispatch])
 
     return (
         <MainLayout>

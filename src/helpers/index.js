@@ -47,4 +47,38 @@ function isTimePassed() {
 
 }
 
-export { setCookie, getCookie, deleteCookie, setValueInLocalStorage, getValueFromLocalStorage, deleteValueFromLocalStorage, isTimePassed };
+
+function capitalizeKeysToJson(obj) {
+    function transform(o) {
+        if (Array.isArray(o)) {
+            return o.map(transform);
+        } else if (o && typeof o === "object") {
+            const newObj = {};
+            for (const key in o) {
+                if (Object.hasOwn(o, key)) {
+                    const newKey =
+                        typeof key === "string" && key.length > 0
+                            ? key.charAt(0).toUpperCase() + key.slice(1)
+                            : key;
+                    newObj[newKey] = transform(o[key]);
+                }
+            }
+            return newObj;
+        }
+        return o; // مقدارها دست نخورده می‌مانند
+    }
+
+    return JSON.stringify(transform(obj), null, 2); // خروجی JSON string با فرمت
+}
+
+
+export {
+    setCookie,
+    getCookie,
+    deleteCookie,
+    setValueInLocalStorage,
+    getValueFromLocalStorage,
+    deleteValueFromLocalStorage,
+    isTimePassed,
+    capitalizeKeysToJson
+};

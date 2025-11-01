@@ -6,7 +6,7 @@ import usePagination from '../../hooks/usePagination';
 import MainLayout from '../layout/MainLayout';
 import Icon from '../../components/Icon';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllBlogs } from '../../actions/blog/blogActions';
+import { getAllBlogs } from '../../features/actions/blog/blogActions';
 import BlogSEO from './BlogSEO';
 
 const settings_items = [

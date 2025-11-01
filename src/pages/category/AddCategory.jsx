@@ -1,37 +1,38 @@
 import { Button, Form, Input } from "antd";
 import MainLayout from "../layout/MainLayout";
-import { useDispatch } from "react-redux";
-import { createCategory } from "../../actions/category/categoryActions";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { createAndUpdateCategory } from "../../features/actions/category/categoryActions";
+import { toast } from "react-toastify";
+import { capitalizeKeysToJson } from "../../helpers";
 
 const AddCategory = () => {
 
-  // const editorRef = useRef(null)
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  // const imageLocation = useSelector(state => state.upload.location);
-  // const categories = useSelector(state => state.categories.select)
+  const { loading } = useSelector(stata => stata.categories);
 
-  // console.log(categories)
-  const onFinish = async values => {
+  const onFinish = async (values) => {
+
+    const data = {
+      "@Name": values.Name?.trim() || '',
+      "@Slug": values.Slug?.trim() || '',
+      "@Description": values.Description?.trim() || '',
+    };
     try {
-      values.thumbnailImageFileName = "string";
-      values.imageFileName = "string";
-      values.icon = "string";
-      values.type = "Blog";
-      // values.parentKey = 0;
-      console.log('Success:', values);
-      const data = { category: values };
-      console.log(data);
-      await dispatch(createCategory(data));
-      navigate("/categories")
+      await dispatch(createAndUpdateCategory(data)).unwrap();
+      toast.success('دسته بندی با موفقیت ایجاد شد');
+      navigate('/categories');
     } catch (error) {
-      console.log(error.message)
+      toast.error(`خطا در ایجاد دسته بندی: ${error?.message || 'خطای ناشناخته'}`);
+      console.error("Error creating doc:", error);
     }
+  }
 
-  };
+
   const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
+    console.log("Failed:", errorInfo);
+    message.error("اطلاعات وارد شده صحیح نیستند");
   };
 
 
@@ -47,34 +48,31 @@ const AddCategory = () => {
           autoComplete="off"
 
         >
-          <div className='grid grid-cols-1 md:grid-cols-2  gap-x-5'>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5'>
             <Form.Item
-              name="title"
+              name="Name"
               label="عنوان"
-              rules={[
-                {
-                  required: true,
-                  message: "وارد کردن عنوان ضروری است",
-                },
-              ]}
+              rules={[{ required: true, message: "وارد کردن عنوان ضروری است" }]}
             >
-              <Input placeholder="عنوان دسته بندی" />
+              <Input placeholder="مثال : ورزشی" />
             </Form.Item>
             <Form.Item
-              name="descriptions"
-              label="توضیحات"
-              rules={[
-                {
-                  required: true,
-                  message: "وارد کردن توضیحات ضروری است",
-                },
-              ]}
+              name="Slug"
+              label="نامک"
+              rules={[{ required: true, message: "وارد کردن نامک ضروری است" }]}
             >
-              <Input placeholder="توضیحات دسته بندی" />
+              <Input dir="ltr" placeholder="sports" />
+            </Form.Item>
+            <Form.Item
+              name="Description"
+              label="توضیحات"
+              rules={[{ required: true, message: "وارد کردن توضیحات ضروری است" }]}
+            >
+              <Input placeholder="مثال : دسته بندی مقالات ورزشی" />
             </Form.Item>
           </div>
-          <Form.Item >
-            <Button className="ml-3" type="primary" htmlType="submit">
+          <Form.Item className="mt-5" >
+            <Button className="ml-3" type="primary" htmlType="submit" loading={loading}>
               ایجاد
             </Button>
             <Button type="default" htmlType="button"

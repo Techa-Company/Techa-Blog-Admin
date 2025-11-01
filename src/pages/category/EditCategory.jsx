@@ -1,104 +1,104 @@
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, message } from "antd";
 import MainLayout from "../layout/MainLayout";
 import { useDispatch, useSelector } from "react-redux";
-import { createCategory, updateCategory } from "../../actions/category/categoryActions";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
+import { toast } from "react-toastify";
+import { getCategoryById, createAndUpdateCategory } from "../../features/actions/category/categoryActions";
 
 const EditCategory = () => {
-
-  // const editorRef = useRef(null)
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
-  const category = useSelector(state => state.categories.categories.find(category => category.key == id))
+  const { selectedCategory, loading } = useSelector(state => state.categories);
   const [form] = Form.useForm();
-  console.log(category)
 
+  // دریافت اطلاعات دسته‌بندی با SP
   useEffect(() => {
-    // editorRef.current.setContent(blog.content)
-    form.setFieldsValue(category)
-    console.log("Second")
-  }, [category, form, id])
-  // const imageLocation = useSelector(state => state.upload.location);
-  // const categories = useSelector(state => state.categories.select)
-
-  // console.log(categories)
-  const onFinish = async values => {
-    try {
-      values.thumbnailImageFileName = "string";
-      values.imageFileName = "string";
-      values.icon = "string";
-      values.type = "Blog";
-      values.parentKey = 0;
-      values.key = id;
-      console.log('Success:', values);
-      const data = { category: values };
-      console.log(data);
-      await dispatch(updateCategory(data));
-      navigate("/categories")
-    } catch (error) {
-      console.log(error.message)
+    if (id) {
+      dispatch(getCategoryById({ "@Id": Number(id) }));
     }
+  }, [id, dispatch]);
 
+  // پر کردن فرم پس از دریافت داده‌ها
+  useEffect(() => {
+    if (selectedCategory) {
+      form.setFieldsValue({
+        Name: selectedCategory.Name,
+        Slug: selectedCategory.Slug,
+        Description: selectedCategory.Description,
+      });
+    }
+  }, [selectedCategory, form]);
+
+  const onFinish = async (values) => {
+    const data = {
+      "@Id": Number(id),
+      "@Name": values.Name?.trim() || '',
+      "@Slug": values.Slug?.trim() || '',
+      "@Description": values.Description?.trim() || '',
+    };
+    try {
+      await dispatch(createAndUpdateCategory(data)).unwrap();
+      toast.success('دسته بندی با موفقیت ویرایش شد');
+      navigate('/categories');
+    } catch (error) {
+      toast.error(`خطا در ویرایش دسته بندی: ${error?.message || 'خطای ناشناخته'}`);
+      console.error("Error updating category:", error);
+    }
   };
+
   const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
+    message.error("اطلاعات وارد شده صحیح نیستند");
   };
-
 
   return (
     <MainLayout>
       <div className='bg-white p-3 rounded-2xl shadow-lg'>
         <h1 className='font-medium text-xl'>ویرایش دسته بندی</h1>
         <Form
+          form={form}
           onFinish={onFinish}
           onFinishFailed={onFinishFailed}
-          initialValues={category}
           className='mt-5'
           layout="vertical"
           autoComplete="off"
-
         >
-          <div className='grid grid-cols-1 md:grid-cols-2  gap-x-5'>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5'>
             <Form.Item
-              name="title"
+              name="Name"
               label="عنوان"
-              rules={[
-                {
-                  required: true,
-                  message: "وارد کردن عنوان ضروری است",
-                },
-              ]}
+              rules={[{ required: true, message: "وارد کردن عنوان ضروری است" }]}
             >
-              <Input placeholder="عنوان دسته بندی" />
+              <Input placeholder="مثال : ورزشی" />
             </Form.Item>
             <Form.Item
-              name="descriptions"
-              label="توضیحات"
-              rules={[
-                {
-                  required: true,
-                  message: "وارد کردن توضیحات ضروری است",
-                },
-              ]}
+              name="Slug"
+              label="نامک"
+              rules={[{ required: true, message: "وارد کردن نامک ضروری است" }]}
             >
-              <Input placeholder="توضیحات دسته بندی" />
+              <Input dir="ltr" placeholder="sports" />
+            </Form.Item>
+            <Form.Item
+              name="Description"
+              label="توضیحات"
+              rules={[{ required: true, message: "وارد کردن توضیحات ضروری است" }]}
+            >
+              <Input placeholder="مثال : دسته بندی مقالات ورزشی" />
             </Form.Item>
           </div>
-          <Form.Item >
-            <Button className="ml-3" type="primary" htmlType="submit">
+          <Form.Item className="mt-5">
+            <Button className="ml-3" type="primary" htmlType="submit" loading={loading}>
               ویرایش
             </Button>
-            <Button type="default" htmlType="button"
-              onClick={() => navigate("/categories")}
-            >
+            <Button type="default" htmlType="button" onClick={() => navigate("/categories")}>
               بازگشت
             </Button>
           </Form.Item>
         </Form>
-      </div >
-    </MainLayout >
+      </div>
+    </MainLayout>
   );
 };
 

@@ -1,7 +1,7 @@
 import { } from "@ant-design/icons";
 import { Button, Form, Input, Divider, Select, Modal, notification } from "antd";
 import { useDispatch } from "react-redux";
-import { createBlogSeo } from "../../actions/blog/seoActions";
+import { createBlogSeo } from "../../features/actions/blog/seoActions";
 
 export default function BlogSEO({ open, setOpen, blogId }) {
 

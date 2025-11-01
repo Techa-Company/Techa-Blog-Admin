@@ -5,7 +5,7 @@ import Uploader from '../../components/Uploader';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { createSlider, getSliderForEdit, updateSlider } from '../../actions/slider/sliderActions';
+import { createSlider, getSliderForEdit, updateSlider } from '../../features/actions/slider/sliderActions';
 
 
 

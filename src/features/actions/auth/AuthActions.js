@@ -1,6 +1,6 @@
 import axios from "axios"
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { deleteCookie, getCookie, setCookie } from "../../helpers";
+import { deleteCookie, getCookie, setCookie } from "../../../helpers";
 
 export const login = createAsyncThunk("auth/login",
     async (userData, { rejectWithValue }) => {

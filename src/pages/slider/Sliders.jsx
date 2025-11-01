@@ -15,7 +15,7 @@ import Icon from "../../components/Icon";
 import usePagination from "../../hooks/usePagination";
 import MainLayout from "../layout/MainLayout";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllSliders } from "../../actions/slider/sliderActions";
+import { getAllSliders } from "../../features/actions/slider/sliderActions";
 
 /**
  * @type {import('antd').TableColumnType}

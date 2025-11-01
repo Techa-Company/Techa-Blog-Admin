@@ -1,7 +1,7 @@
 import { Form, Input, Button } from 'antd';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../../actions/auth/AuthActions';
+import { login } from '../../features/actions/auth/AuthActions';
 import { toast } from 'react-toastify';
 
 const Login = () => {
