@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createAndUpdatePost, getPostById } from '../../features/actions/blog/blogActions';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getAllCategories } from '../../features/actions/category/categoryActions';
+import { generateSlug } from '../../helpers';
 
 const EditBlog = () => {
     const { id } = useParams();
@@ -45,11 +46,20 @@ const EditBlog = () => {
                 TimeToRead: selectedPost.TimeToRead
             });
             if (editorRef.current) {
+                console.log("jiii")
                 editorRef.current.setContent(selectedPost.Body || "");
             }
         }
     }, [selectedPost, form]);
-
+    const onValuesChange = (changedValues, allValues) => {
+        console.log("hi")
+        // اگر عنوان تغییر کرد و اسلاگ خالی است، اسلاگ بساز
+        if (changedValues.Title) {
+            const slug = generateSlug(changedValues.Title);
+            form.setFieldsValue({ Slug: slug });
+            console.log(slug)
+        }
+    };
     const onFinish = async (values) => {
         try {
             const data = {
@@ -88,6 +98,8 @@ const EditBlog = () => {
                     onFinish={onFinish}
                     autoComplete="off"
                     className="mt-5"
+                    onValuesChange={onValuesChange}
+
                 >
                     {/* بخش بالایی */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5">
@@ -118,7 +130,7 @@ const EditBlog = () => {
                             label="نامک"
                             rules={[{ required: true, message: "نامک الزامی است" }]}
                         >
-                            <Input dir="ltr" placeholder="نامک پست" />
+                            <Input dir="ltr" placeholder="نامک پست" readOnly />
                         </Form.Item>
                     </div>
 

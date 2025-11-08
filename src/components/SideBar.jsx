@@ -48,6 +48,11 @@ const items = [
                         label: "دسته بندی ها",
                         icon: <Icon name="album" />,
                     },
+                    {
+                        key: "/tags",
+                        label: "برچسب ها",
+                        icon: <Icon name="tag" />,
+                    },
                 ],
             }
         ],

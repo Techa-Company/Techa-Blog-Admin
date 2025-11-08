@@ -71,6 +71,15 @@ function capitalizeKeysToJson(obj) {
     return JSON.stringify(transform(obj), null, 2); // خروجی JSON string با فرمت
 }
 
+function generateSlug(title) {
+    if (!title) return "";
+    let slug = title.toLowerCase();
+    slug = slug.replace(/[^a-z0-9\u0600-\u06FF\s-]/g, "");
+    slug = slug.replace(/\s+/g, "-").replace(/-+/g, "-");
+    slug = slug.replace(/^-+|-+$/g, "");
+    return slug;
+}
+
 
 export {
     setCookie,
@@ -80,5 +89,6 @@ export {
     getValueFromLocalStorage,
     deleteValueFromLocalStorage,
     isTimePassed,
-    capitalizeKeysToJson
+    capitalizeKeysToJson,
+    generateSlug
 };

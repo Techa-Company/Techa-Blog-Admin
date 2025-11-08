@@ -2,16 +2,33 @@ import { Button, Form, Input } from "antd";
 import MainLayout from "../layout/MainLayout";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { createAndUpdateCategory } from "../../features/actions/category/categoryActions";
 import { toast } from "react-toastify";
 import { capitalizeKeysToJson, generateSlug } from "../../helpers";
+import { createAndUpdateTag } from "../../features/actions/tag/tagActions";
 
-const AddCategory = () => {
+const AddTag = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading } = useSelector(stata => stata.categories);
+  const { loading } = useSelector(stata => stata.tags);
   const [form] = Form.useForm();
+
+  const onFinish = async (values) => {
+
+    const data = {
+      "@Name": values.Name?.trim() || '',
+      "@Slug": values.Slug,
+    };
+    try {
+      await dispatch(createAndUpdateTag(data)).unwrap();
+      toast.success('برچسب با موفقیت ایجاد شد');
+      navigate('/tags');
+    } catch (error) {
+      toast.error(`خطا در ایجاد برچسب: ${error?.message || 'خطای ناشناخته'}`);
+      console.error("Error creating doc:", error);
+    }
+  }
+
   const onValuesChange = (changedValues, allValues) => {
     console.log("hi")
     // اگر عنوان تغییر کرد و اسلاگ خالی است، اسلاگ بساز
@@ -21,22 +38,6 @@ const AddCategory = () => {
       console.log(slug)
     }
   };
-  const onFinish = async (values) => {
-
-    const data = {
-      "@Name": values.Name?.trim() || '',
-      "@Slug": values.Slug?.trim() || '',
-      "@Description": values.Description?.trim() || '',
-    };
-    try {
-      await dispatch(createAndUpdateCategory(data)).unwrap();
-      toast.success('دسته بندی با موفقیت ایجاد شد');
-      navigate('/categories');
-    } catch (error) {
-      toast.error(`خطا در ایجاد دسته بندی: ${error?.message || 'خطای ناشناخته'}`);
-      console.error("Error creating doc:", error);
-    }
-  }
 
 
   const onFinishFailed = (errorInfo) => {
@@ -48,7 +49,7 @@ const AddCategory = () => {
   return (
     <MainLayout>
       <div className='bg-white p-3 rounded-2xl shadow-lg'>
-        <h1 className='font-medium text-xl'>ساخت دسته بندی جدید</h1>
+        <h1 className='font-medium text-xl'>ساخت برچسب جدید</h1>
         <Form
           form={form}
           onFinish={onFinish}
@@ -60,7 +61,7 @@ const AddCategory = () => {
 
 
         >
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-x-5'>
             <Form.Item
               name="Name"
               label="عنوان"
@@ -75,20 +76,14 @@ const AddCategory = () => {
             >
               <Input dir="ltr" placeholder="sports" readOnly />
             </Form.Item>
-            <Form.Item
-              name="Description"
-              label="توضیحات"
-              rules={[{ required: true, message: "وارد کردن توضیحات ضروری است" }]}
-            >
-              <Input placeholder="مثال : دسته بندی مقالات ورزشی" />
-            </Form.Item>
+
           </div>
           <Form.Item className="mt-5" >
             <Button className="ml-3" type="primary" htmlType="submit" loading={loading}>
               ایجاد
             </Button>
             <Button type="default" htmlType="button"
-              onClick={() => navigate("/categories")}
+              onClick={() => navigate("/tags")}
             >
               بازگشت
             </Button>
@@ -99,4 +94,4 @@ const AddCategory = () => {
   );
 };
 
-export default AddCategory;
+export default AddTag;

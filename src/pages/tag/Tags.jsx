@@ -6,8 +6,8 @@ import Icon from "../../components/Icon";
 import usePagination from "../../hooks/usePagination";
 import MainLayout from "../layout/MainLayout";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteCategory, getAllCategories } from "../../features/actions/category/categoryActions";
 import { toast } from "react-toastify";
+import { deleteTag, getAllTags } from "../../features/actions/tag/tagActions";
 
 /**
  * @type {import('antd').TableColumnType}
@@ -40,12 +40,6 @@ const columns = [
     render: (_, record) => <span >{record.Slug || "-"}</span>,
   },
   {
-    title: "توضیحات",
-    dataIndex: "Description",
-    key: "Description",
-    render: (_, record) => <span>{record.Description || "-"}</span>,
-  },
-  {
     title: "عملیات",
     key: "actions",
     render: (_, record) => <Actions id={record.Id} {...record} />,
@@ -59,11 +53,11 @@ function Actions({ id }) {
 
   const handleDelete = async () => {
     try {
-      await dispatch(deleteCategory({ "Id": id })).unwrap();
-      await dispatch(getAllCategories());
-      toast.success("دسته بندی با موفقیت حذف شد");
+      await dispatch(deleteTag({ "Id": id })).unwrap();
+      dispatch(getAllTags())
+      toast.success("برچسب با موفقیت حذف شد");
     } catch (error) {
-      toast.error(`خطا در حذف دسته بندی: ${error?.message || "خطای ناشناخته"}`);
+      toast.error(`خطا در حذف برچسب: ${error?.message || "خطای ناشناخته"}`);
     }
   };
 
@@ -76,8 +70,8 @@ function Actions({ id }) {
         type="text"
       />
       <Popconfirm
-        title="حذف دسته بندی"
-        description="آیا از حذف این دسته بندی مطمئن هستید؟"
+        title="حذف برچسب"
+        description="آیا از حذف این برچسب مطمئن هستید؟"
         okText="حذف"
         cancelText="لغو"
         okButtonProps={{ danger: true }}
@@ -94,16 +88,16 @@ function Actions({ id }) {
   );
 }
 
-const Categories = ({ type }) => {
+const Tags = ({ type }) => {
   const pagination = usePagination();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const dispatch = useDispatch();
-  const { loading, categories } = useSelector(state => state.categories);
+  const { loading, tags } = useSelector(state => state.tags);
 
   useEffect(() => {
-    dispatch(getAllCategories());
+    dispatch(getAllTags());
   }, [dispatch]);
 
   // Debounce برای سرچ
@@ -118,12 +112,11 @@ const Categories = ({ type }) => {
   }, [search]);
 
   // فیلتر کردن دسته‌بندی‌ها بر اساس debouncedSearch
-  const filteredCategories = categories.filter(cat => {
+  const filteredTags = tags.filter(cat => {
     const keyword = debouncedSearch.trim().toLowerCase();
     return (
       cat.Name?.toLowerCase().includes(keyword) ||
-      cat.Slug?.toLowerCase().includes(keyword) ||
-      cat.Description?.toLowerCase().includes(keyword)
+      cat.Slug?.toLowerCase().includes(keyword)
     );
   });
 
@@ -133,7 +126,7 @@ const Categories = ({ type }) => {
         <Space size="large">
           <Link to="new">
             <Button type="primary" icon={<PlusOutlined />}>
-              دسته بندی جدید
+              برچسب جدید
             </Button>
           </Link>
           <Input.Search
@@ -148,7 +141,7 @@ const Categories = ({ type }) => {
         <Spin size="large" spinning={loading}>
           <Table
             columns={columns}
-            dataSource={filteredCategories}
+            dataSource={filteredTags}
             rowKey="Id"
           />
         </Spin>
@@ -157,4 +150,4 @@ const Categories = ({ type }) => {
   );
 }
 
-export default Categories;
+export default Tags;

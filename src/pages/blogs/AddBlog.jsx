@@ -1,15 +1,13 @@
 import MainLayout from '../layout/MainLayout';
-import { Button, Input, InputNumber, Form, Select, ConfigProvider, DatePicker } from 'antd';
+import { Button, Input, InputNumber, Form, Select } from 'antd';
 import BlogEditor from '../../components/BlogEditor';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Uploader from '../../components/Uploader';
 import { useDispatch, useSelector } from 'react-redux';
 import { createAndUpdatePost } from '../../features/actions/blog/blogActions';
 import { useNavigate } from 'react-router-dom';
-
 import { getAllCategories } from '../../features/actions/category/categoryActions';
-
-
+import { generateSlug } from '../../helpers';
 
 const AddBlog = () => {
     const editorRef = useRef(null);
@@ -18,19 +16,30 @@ const AddBlog = () => {
     const { categories } = useSelector(state => state.categories);
     const { id } = useSelector(state => state.upload);
 
-    console.log(id)
+    const [form] = Form.useForm();
+
     useEffect(() => {
         dispatch(getAllCategories());
-    }, [dispatch])
+    }, [dispatch]);
+
+    const onValuesChange = (changedValues, allValues) => {
+        console.log("hi")
+        // اگر عنوان تغییر کرد و اسلاگ خالی است، اسلاگ بساز
+        if (changedValues.Title) {
+            const slug = generateSlug(changedValues.Title);
+            form.setFieldsValue({ Slug: slug });
+            console.log(slug)
+        }
+    };
 
     const onFinish = async (values) => {
-        console.log(values)
         try {
+
             const data = {
                 AuthorId: 9,
                 CategoryId: values.CategoryId,
                 Title: values.Title?.trim(),
-                Slug: values.Slug?.trim(),
+                Slug: values.Slug,
                 Summary: values.Summary?.trim(),
                 Body: editorRef.current.getContent(),
                 ThumbnailId: id || null,
@@ -41,9 +50,8 @@ const AddBlog = () => {
                 PublishedAt: values.PublishedAt
                     ? new Date(values.PublishedAt).toISOString().slice(0, 19).replace("T", " ")
                     : null,
-                TimeToRead: values.TimeToRead || 0
+                TimeToRead: values.TimeToRead || 0,
             };
-
 
             await dispatch(createAndUpdatePost(data)).unwrap();
             navigate("/blogs");
@@ -57,9 +65,11 @@ const AddBlog = () => {
             <div className='bg-white p-3 rounded-2xl shadow-lg'>
                 <h1 className='font-medium text-xl'>ساخت پست جدید</h1>
                 <Form
+                    form={form}
                     onFinish={onFinish}
                     layout="vertical"
                     autoComplete="off"
+                    onValuesChange={onValuesChange}
                 >
                     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 mt-5'>
                         <Form.Item
@@ -89,10 +99,11 @@ const AddBlog = () => {
                             label="نامک"
                             rules={[{ required: true, message: "نامک الزامی است" }]}
                         >
-                            <Input dir='ltr' placeholder="نامک پست" />
+                            <Input dir='ltr' placeholder="نامک پست" readOnly />
                         </Form.Item>
                     </div>
-                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5'>
+
+                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 mt-5'>
                         <Form.Item
                             name="Status"
                             label="وضعیت"
@@ -103,6 +114,7 @@ const AddBlog = () => {
                                 <Select.Option value="Published">منتشر شده</Select.Option>
                             </Select>
                         </Form.Item>
+
                         <Form.Item
                             name="PublishedAt"
                             label="تاریخ انتشار"
@@ -116,12 +128,9 @@ const AddBlog = () => {
                         >
                             <InputNumber min={0} className="w-full" />
                         </Form.Item>
-
                     </div>
 
-
-
-                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5'>
+                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 mt-5'>
                         <Form.Item
                             name="MetaTitle"
                             label="عنوان سئو"
@@ -135,6 +144,7 @@ const AddBlog = () => {
                         >
                             <Select mode="tags" placeholder="کلمات کلیدی" />
                         </Form.Item>
+
                         <Form.Item
                             name="MetaDescription"
                             label="Meta Description"
@@ -142,13 +152,15 @@ const AddBlog = () => {
                             <Input placeholder="توضیح متا" />
                         </Form.Item>
                     </div>
-                    <div className='grid grid-cols-1 md:grid-cols-2  gap-x-5'>
+
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-x-5 mt-5'>
                         <Form.Item
                             name="ThumbnailId"
                             label="تصویر اصلی پست"
                         >
                             <Uploader />
                         </Form.Item>
+
                         <Form.Item
                             name="Summary"
                             label="خلاصه"
@@ -157,15 +169,14 @@ const AddBlog = () => {
                         </Form.Item>
                     </div>
 
-
                     <Form.Item
                         name="Body"
                         label="محتوا"
-                    // rules={[{ required: true, message: "محتوا الزامی است" }]}
                     >
                         <BlogEditor editorRef={editorRef} />
                     </Form.Item>
-                    <Form.Item className="mt-5" >
+
+                    <Form.Item className="mt-5">
                         <Button className='ml-3' type="primary" htmlType="submit">ایجاد</Button>
                         <Button type="default" htmlType="button" onClick={() => navigate("/blogs")} className="ml-3">بازگشت</Button>
                     </Form.Item>

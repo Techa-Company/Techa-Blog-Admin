@@ -13,6 +13,9 @@ import EditSlider from "../pages/slider/EditSlider";
 import Login from "../pages/auth/Login";
 // import ProtectedRoute from "../components/ProtectedRoute";
 import NotFound from "../pages/errors/NotFound";
+import Tags from "../pages/tag/Tags";
+import AddTag from "../pages/tag/AddTag";
+import EditTag from "../pages/tag/EditTag";
 // import Login from "../pages/auth/Login";
 // import SendCode from "../pages/auth/SendCode";
 // import Home from "../pages/home/Home";
@@ -81,6 +84,27 @@ export const router = createBrowserRouter([
         element:
             // <ProtectedRoute>
             <EditBlog />
+        // </ProtectedRoute>
+    },
+    {
+        path: "/tags",
+        element:
+            // <ProtectedRoute>
+            <Tags />
+        // </ProtectedRoute>
+    },
+    {
+        path: "/tags/new",
+        element:
+            // <ProtectedRoute>
+            <AddTag />
+        // </ProtectedRoute>
+    },
+    {
+        path: "/tags/edit/:id",
+        element:
+            // <ProtectedRoute>
+            <EditTag />
         // </ProtectedRoute>
     },
     {
