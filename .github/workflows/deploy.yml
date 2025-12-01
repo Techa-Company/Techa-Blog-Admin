@@ -1,0 +1,63 @@
+
+name: CD Pipeline (Static) - admin-blog
+
+on:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - run: npm install
+      - run: npm run build
+      
+      - name: Verify Output Folder
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "Error: Output folder 'dist' not found."
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: [self-hosted, windows, x64]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+          path: ./temp_dl
+      
+      - name: Deploy to IIS
+        shell: powershell
+        run: |
+          $dest = "C:\inetpub\wwwroot\projects\admin-blog"
+          $source = ".\temp_dl"
+
+          if (Test-Path "$source\dist\index.html") { 
+              $source = "$source\dist" 
+          }
+          
+          if (Test-Path $dest) { Remove-Item "$dest\*" -Recurse -Force -ErrorAction SilentlyContinue }
+          if (-not (Test-Path $dest)) { New-Item -ItemType Directory -Force -Path $dest | Out-Null }
+          
+          Copy-Item -Path "$source\*" -Destination $dest -Recurse -Force
+          
+          $configPath = "$dest\web.config"
+          if (-not (Test-Path $configPath)) {
+             $content = '<?xml version="1.0" encoding="UTF-8"?><configuration><system.webServer><rewrite><rules><rule name="SPA" stopProcessing="true"><match url=".*" /><conditions logicalGrouping="MatchAll"><add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" /><add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" /></conditions><action type="Rewrite" url="/index.html" /></rule></rules></rewrite></system.webServer></configuration>'
+             Set-Content -Path $configPath -Value $content
+          }
+          
+          Remove-Item ".\temp_dl" -Recurse -Force -ErrorAction SilentlyContinue
